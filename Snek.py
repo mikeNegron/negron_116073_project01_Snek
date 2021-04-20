@@ -58,8 +58,8 @@ def limits(X_LIM1, Y_LIM1, X_LIM2, Y_LIM2):
 def Snek_Reward(WIDTH, GRID_HEIGHT):
 
     #Reward coordinates:
-    REWARD_X = randrange(0, WIDTH - 20, 20)
-    REWARD_Y = randrange(0, GRID_HEIGHT - 20, 20)
+    REWARD_X = randrange(20, WIDTH - 20, 20)
+    REWARD_Y = randrange(20, GRID_HEIGHT - 20, 20)
 
     PRIZE = Rectangle(Point(REWARD_X, REWARD_Y), Point(REWARD_X + 20, REWARD_Y + 20))
     PRIZE.setFill("Red")
@@ -69,8 +69,6 @@ def Snek_Reward(WIDTH, GRID_HEIGHT):
 
 PLAYER = {}
 PLAYER[0] = Rectangle(Point(X - 20 - RADIUS, Y - RADIUS), Point(X - 20 + RADIUS, Y + RADIUS))
-PLAYER[1] = Rectangle(Point(X - 40 - RADIUS, Y - RADIUS), Point(X - 40 + RADIUS, Y + RADIUS))
-PLAYER[2] = Rectangle(Point(X - 60 - RADIUS, Y - RADIUS), Point(X - 60 + RADIUS, Y + RADIUS))
 
 j = 0
 
@@ -92,6 +90,7 @@ while GAME:
 
     #Head coordinates of snake
     PLAYER[0] = Rectangle(Point(X - RADIUS, Y - RADIUS), Point(X + RADIUS, Y + RADIUS))
+    PLAYER[0].setOutline("White")
     PLAYER[0].setFill("Cyan")
     PLAYER[0].setWidth(2)
     PLAYER[0].draw(WIN)
@@ -99,6 +98,20 @@ while GAME:
     #Screen edges
     GAME = True if limits(PLAYER[0].getP1().getX(), PLAYER[0].getP1().getY(),
     PLAYER[0].getP2().getX(), PLAYER[0].getP2().getY()) else OVER
+
+    if(GAME == OVER):
+        PLAYER[0].undraw()
+        PLAYER[0].setFill(color_rgb(220, 20, 60))
+        PLAYER[0].setWidth(2)
+        PLAYER[0].draw(WIN)
+
+    for i in range(1, len(PLAYER)):
+        if(PLAYER[0].getCenter().getX() == PLAYER[i].getCenter().getX() and PLAYER[0].getCenter().getY() == PLAYER[i].getCenter().getY()):
+            PLAYER[0].undraw()
+            PLAYER[0].setFill(color_rgb(220, 20, 60))
+            PLAYER[0].setWidth(2)
+            PLAYER[0].draw(WIN)
+            GAME=OVER
 
     #User controls
     TEMP = WIN.checkKey()
