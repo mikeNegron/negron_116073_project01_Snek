@@ -135,9 +135,6 @@ while GAME:
         OBJECTIVE.undraw()
 
     #Rest goes here
-    j += 1
-    if(j == 200):
-        GAME = OVER
     update(10)
 
 WIN.getMouse()
