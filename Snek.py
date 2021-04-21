@@ -41,6 +41,17 @@ def UI(WIDTH, HEIGHT):
     USER.setOutline(color_rgb(113, 191, 46))
     USER.draw(WIN)
 
+def game_over_UI(WIDTH, HEIGHT):
+    USER = Rectangle(Point(0, 400), Point(WIDTH, HEIGHT))
+    USER.setFill("Black")
+    USER.draw(WIN)
+
+    END_TEXT = Text(USER.getCenter(), "GAME OVER")
+    END_TEXT.setSize(20)
+    END_TEXT.setFill("White")
+    END_TEXT.draw(WIN)
+
+    WIN.getMouse()
 
 def score_counter_and_display(SCORE):
     COUNTER = Text(Point(75, 435), f"Score: {SCORE}")
@@ -88,7 +99,8 @@ def main():
     UI(WIDTH, HEIGHT)
     STREAK = score_counter_and_display(SCORE)
 
-    with open(r"C:\Users\Mike\Desktop\Snek\scores.txt", "r") as CHALLENGE:
+    #Gets High Score
+    with open("scores.txt", "r") as CHALLENGE:
         HIGHEST = CHALLENGE.readline()
         CHALLENGE_SCORE = Text(Point(250, 435), f"High Score: {HIGHEST}")
         CHALLENGE_SCORE.setSize(20)
@@ -188,15 +200,16 @@ def main():
         # Controls Snake speed
         update(FRAMES)
     
-    with open(r"C:\Users\Mike\Desktop\Snek\scores.txt", "r") as CHALLENGE:
+    #If score is nigher than High Score, registers it
+    with open("scores.txt", "r") as CHALLENGE:
         if(int(CHALLENGE.readline()) < SCORE):
             NEW_HIGH = True
     
     if(NEW_HIGH):
-        with open(r"C:\Users\Mike\Desktop\Snek\scores.txt", "w") as CHALLENGE:
+        with open("scores.txt", "w") as CHALLENGE:
             CHALLENGE.write(str(SCORE))
 
-    WIN.getMouse()
+    game_over_UI(WIDTH, HEIGHT)
     WIN.close()
 
 if __name__ == '__main__':
