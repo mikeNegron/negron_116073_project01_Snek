@@ -102,7 +102,7 @@ def main():
     #Gets High Score
     with open("scores.txt", "r") as CHALLENGE:
         HIGHEST = CHALLENGE.readline()
-        CHALLENGE_SCORE = Text(Point(275, 435), f"High Score: {HIGHEST}")
+        CHALLENGE_SCORE = Text(Point(290, 435), f"High Score: {HIGHEST}")
         CHALLENGE_SCORE.setSize(20)
         CHALLENGE_SCORE.setFill("White")
         CHALLENGE_SCORE.draw(WIN)
