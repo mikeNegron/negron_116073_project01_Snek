@@ -1,5 +1,5 @@
 from graphics import*
-from random import*
+from random import randrange
 
 # Variables used:
 WIDTH = 400
@@ -10,8 +10,8 @@ SCORE = 0
 X = 30
 Y = 70
 BODY = 0
-RADIUS = 10
-LENGTH = RADIUS * 2
+SIDE = 10
+LENGTH = SIDE * 2
 PLAYER_LENGTH = 3
 DIRECTION = "Down"
 GAME = True
@@ -42,11 +42,12 @@ def UI(WIDTH, HEIGHT):
     USER.draw(WIN)
 
 
-def Score_Counter_and_Display(SCORE):
+def score_counter_and_display(SCORE):
     COUNTER = Text(Point(75, 435), f"Score: {SCORE}")
     COUNTER.setSize(20)
     COUNTER.setFill("White")
     COUNTER.draw(WIN)
+
     return COUNTER
 
 
@@ -75,23 +76,31 @@ def Snek_Reward(WIDTH, GRID_HEIGHT):
 
 
 def main():
-
-    global FRAMES, SCORE, X, Y, BODY, RADIUS, LENGTH, PLAYER_LENGTH, DIRECTION, GAME, OVER, SPAWN, REWARD
+    global FRAMES, SCORE, X, Y, BODY, SIDE, LENGTH, PLAYER_LENGTH, DIRECTION, GAME, OVER, SPAWN, REWARD
 
     # Snake values to be drawn
     PLAYER = {}
-    PLAYER[0] = Rectangle(Point(X - 20 - RADIUS, Y - RADIUS),
-                          Point(X - 20 + RADIUS, Y + RADIUS))
+    PLAYER[0] = Rectangle(Point(X - 20 - SIDE, Y - SIDE),
+                          Point(X - 20 + SIDE, Y + SIDE))
 
     # Playing field
     grid(WIDTH, GRID_HEIGHT)
     UI(WIDTH, HEIGHT)
-    STREAK = Score_Counter_and_Display(SCORE)
+    STREAK = score_counter_and_display(SCORE)
+
+    with open(r"C:\Users\Mike\Desktop\Snek\scores.txt", "r") as CHALLENGE:
+        HIGHEST = CHALLENGE.readline()
+        CHALLENGE_SCORE = Text(Point(250, 435), f"High Score: {HIGHEST}")
+        CHALLENGE_SCORE.setSize(20)
+        CHALLENGE_SCORE.setFill("White")
+        CHALLENGE_SCORE.draw(WIN)
+    
+    NEW_HIGH = False
 
     # Running game:
     while GAME:
         STREAK.undraw()
-        STREAK = Score_Counter_and_Display(SCORE)
+        STREAK = score_counter_and_display(SCORE)
 
         # Makes existing and potential new body
         if len(PLAYER) < PLAYER_LENGTH:
@@ -106,8 +115,8 @@ def main():
             PLAYER[len(PLAYER) - i].draw(WIN)
 
         # Head coordinates of snake
-        PLAYER[0] = Rectangle(Point(X - RADIUS, Y - RADIUS),
-                          Point(X + RADIUS, Y + RADIUS))
+        PLAYER[0] = Rectangle(Point(X - SIDE, Y - SIDE),
+                              Point(X + SIDE, Y + SIDE))
         PLAYER[0].setOutline("White")
         PLAYER[0].setFill("Cyan")
         PLAYER[0].setWidth(2)
@@ -178,7 +187,16 @@ def main():
 
         # Controls Snake speed
         update(FRAMES)
+    
+    with open(r"C:\Users\Mike\Desktop\Snek\scores.txt", "r") as CHALLENGE:
+        if(int(CHALLENGE.readline()) < SCORE):
+            NEW_HIGH = True
+    
+    if(NEW_HIGH):
+        with open(r"C:\Users\Mike\Desktop\Snek\scores.txt", "w") as CHALLENGE:
+            CHALLENGE.write(str(SCORE))
 
+    WIN.getMouse()
     WIN.close()
 
 if __name__ == '__main__':
