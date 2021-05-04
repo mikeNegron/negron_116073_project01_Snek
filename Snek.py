@@ -109,11 +109,6 @@ def score_manipulation(file: str, score_mode: str, window, score=0):
                 CHALLENGE.write(str(score))
 
 
-def controls(arrow, axis, length, moves):
-   
-    return moves.get(arrow)()
-
-
 def run():
     # Variables used:
     WIDTH = 400
@@ -131,12 +126,8 @@ def run():
     Y = 70
     SCORE = 0
     FRAMES = 5
-    move_set = {
-        'Up' : lambda : Y - LENGTH,
-        'Left' : lambda : X - LENGTH,
-        'Down' : lambda : Y + LENGTH,
-        'Right' : lambda : X + LENGTH
-        }
+    y_dir = {"Up": -LENGTH, "Down": LENGTH}
+    x_dir = {"Left": -LENGTH, "Right": LENGTH}
 
     # Main GUI:
     win = GraphWin("SNEK", WIDTH, HEIGHT, autoflush=False)
@@ -208,22 +199,17 @@ def run():
                 PLAYER[0].draw(win)
                 GAME = OVER
 
-        # User controls
+        # User control validation:
         TEMP = win.checkKey()
-        if TEMP == "Up":
-            DIRECTION = "Up"
-        elif TEMP == "Left":
-            DIRECTION = "Left"
-        elif TEMP == "Down":
-            DIRECTION = "Down"
-        elif TEMP == "Right":
-            DIRECTION = "Right"
 
-        if(DIRECTION == "Up" or DIRECTION == "Down"): #Testing dictionaries with lambda function
-            Y = controls(DIRECTION, Y, LENGTH, move_set)
-
-        elif(DIRECTION == "Left" or DIRECTION == "Right"): #Testing dictionaries with lambda function
-            X = controls(DIRECTION, X, LENGTH, move_set)
+        if TEMP != "":
+            DIRECTION = TEMP
+        
+        # User control execution:
+        if DIRECTION in y_dir:
+            Y += y_dir[DIRECTION]
+        elif DIRECTION in x_dir:
+            X += x_dir[DIRECTION]
 
         # Snake objective spawning
         if(SPAWN == False):
