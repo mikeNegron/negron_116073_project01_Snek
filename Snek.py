@@ -23,10 +23,17 @@ def UI(WIDTH, HEIGHT, window):
     USER.draw(window)
 
 
-def display(width, height, window):
+def display(width, height):
     """Generates display (grid/user UI)."""
-    grid(width, width, window)
-    UI(width, height, window)
+
+    # Main GUI:
+    win = GraphWin("SNEK", 400, 470, autoflush=False)
+    win.setBackground(color_rgb(15, 15, 15))
+
+    grid(width, width, win)
+    UI(width, height, win)
+
+    return win
 
 
 def game_over_UI(WIDTH, HEIGHT, window):
@@ -88,12 +95,12 @@ def score_manipulation(file: str, score_mode: str, window, score=0):
             1. read: Reads score from file.
             2. v/w: Verifies if score is higher than previous. If True, it is added to the file.
 
-    Note: File must have a Int Type value saved before using v/w mode.
+    Note: File must be created prior to manipulation.
     """
 
     if score_mode == "read":
         with open(file, "r") as CHALLENGE:
-            HIGHEST = CHALLENGE.readline()
+            HIGHEST = "0" if (temp := CHALLENGE.readline()) == "" else temp
 
             CHALLENGE_SCORE = Text(Point(285, 435), f"High Score: {HIGHEST}")
             CHALLENGE_SCORE.setSize(20)
@@ -102,13 +109,35 @@ def score_manipulation(file: str, score_mode: str, window, score=0):
 
     elif score_mode == "v/w":
         with open(file, "r+") as CHALLENGE:
-            if (int(CHALLENGE.readline()) < score):
+
+            temp = False
+
+            try:
+                temp = int(CHALLENGE.readline()) < score
+            except ValueError:
+                CHALLENGE.write(str(score))
+            
+            if (temp):
                 position = 0
 
                 CHALLENGE.seek(position)
                 CHALLENGE.write(str(score))
 
+#STILL BEING DEVELOPED
+""" def crashed(current_dir: str, snake: dict):
+    for i in range(1, len(snake)):
+        if current_dir == "Up" or "Left":
+            if snake[0].getP1().getX() + 20 == snake[i].getP1().getX() and snake[0].getP1().getY() == snake[i].getP1().getY():
+                return False
 
+        elif current_dir == "Down" or "Right":
+            if snake[0].getP2().getX() + 20 == snake[i].getP2().getX() and snake[0].getP2().getY() == snake[i].getP2().getY():
+                return False
+        
+        else:
+            return True """
+
+#Runs snake game:
 def run():
     # Variables used:
     WIDTH = 400
@@ -129,10 +158,6 @@ def run():
     y_dir = {"Up": -LENGTH, "Down": LENGTH}
     x_dir = {"Left": -LENGTH, "Right": LENGTH}
 
-    # Main GUI:
-    win = GraphWin("SNEK", WIDTH, HEIGHT, autoflush=False)
-    win.setBackground(color_rgb(15, 15, 15))
-
     # Snake values to be drawn
     PLAYER = {}
     PLAYER[0] = Rectangle(
@@ -141,16 +166,16 @@ def run():
         )
 
     # Playing field
-    display(WIDTH, HEIGHT, win)
-    STREAK = score_counter_and_display(SCORE, win)
+    ui = display(WIDTH, HEIGHT)
+    STREAK = score_counter_and_display(SCORE, ui)
 
     #Gets High Score
-    score_manipulation("scores.txt", "read", win)
+    score_manipulation("scores.txt", "read", ui)
 
     # Running game:
     while GAME:
         STREAK.undraw()
-        STREAK = score_counter_and_display(SCORE, win)
+        STREAK = score_counter_and_display(SCORE, ui)
 
         # Makes existing and potential new body
         if len(PLAYER) < PLAYER_LENGTH:
@@ -162,7 +187,7 @@ def run():
         for i in range(1, len(PLAYER)):
             PLAYER[len(PLAYER) - i].undraw()
             PLAYER[len(PLAYER) - i] = PLAYER[len(PLAYER) - i - 1].clone()
-            PLAYER[len(PLAYER) - i].draw(win)
+            PLAYER[len(PLAYER) - i].draw(ui)
 
         # Head coordinates of snake
         PLAYER[0] = Rectangle(
@@ -172,7 +197,7 @@ def run():
         PLAYER[0].setOutline("White")
         PLAYER[0].setFill("Cyan")
         PLAYER[0].setWidth(2)
-        PLAYER[0].draw(win)
+        PLAYER[0].draw(ui)
 
         # Screen edges
         EDGE1 = PLAYER[0].getP1().getX()
@@ -188,7 +213,7 @@ def run():
             PLAYER[0].undraw()
             PLAYER[0].setFill(color_rgb(220, 20, 60))
             PLAYER[0].setWidth(2)
-            PLAYER[0].draw(win)
+            PLAYER[0].draw(ui)
 
         # Game over if head touches body
         for i in range(1, len(PLAYER)):
@@ -196,11 +221,11 @@ def run():
                 PLAYER[0].undraw()
                 PLAYER[0].setFill(color_rgb(220, 20, 60))
                 PLAYER[0].setWidth(2)
-                PLAYER[0].draw(win)
+                PLAYER[0].draw(ui)
                 GAME = OVER
 
         # User control validation:
-        TEMP = win.checkKey()
+        TEMP = ui.checkKey()
 
         if TEMP != "":
             DIRECTION = TEMP
@@ -213,7 +238,7 @@ def run():
 
         # Snake objective spawning
         if(SPAWN == False):
-            OBJECTIVE = Snek_Reward(WIDTH, GRID_HEIGHT, win)
+            OBJECTIVE = Snek_Reward(WIDTH, GRID_HEIGHT, ui)
             SPAWN = True
 
         # If objective is reached, update values
@@ -233,9 +258,9 @@ def run():
         update(FRAMES)
     
     #If score is nigher than High Score, registers it
-    score_manipulation("scores.txt", "v/w", win, SCORE)
+    score_manipulation("scores.txt", "v/w", ui, SCORE)
 
-    game_over_UI(WIDTH, HEIGHT, win)
+    game_over_UI(WIDTH, HEIGHT, ui)
     win.close()
 
 
