@@ -63,15 +63,15 @@ def score_counter_and_display(SCORE, window):
 def limits(X_LIM1, Y_LIM1, X_LIM2, Y_LIM2, limits):
     """Validates if snake is at any on the limits to end game."""
     if(X_LIM1 >= limits[0] or X_LIM1 <= 0):
-        return False
-    elif(Y_LIM1 >= limits[1] or Y_LIM1 <= 0):
-        return False
-    elif(X_LIM2 >= limits[0] or X_LIM2 <= 0):
-        return False
-    elif(Y_LIM2 >= limits[1] or Y_LIM2 <= 0):
-        return False
-    else:
         return True
+    elif(Y_LIM1 >= limits[1] or Y_LIM1 <= 0):
+        return True
+    elif(X_LIM2 >= limits[0] or X_LIM2 <= 0):
+        return True
+    elif(Y_LIM2 >= limits[1] or Y_LIM2 <= 0):
+        return True
+    else:
+        return False
 
 
 def Snek_Reward(WIDTH, GRID_HEIGHT, window):
@@ -109,7 +109,6 @@ def score_manipulation(file: str, score_mode: str, window, score=0):
 
     elif score_mode == "v/w":
         with open(file, "r+") as CHALLENGE:
-
             temp = False
 
             try:
@@ -123,19 +122,23 @@ def score_manipulation(file: str, score_mode: str, window, score=0):
                 CHALLENGE.seek(position)
                 CHALLENGE.write(str(score))
 
-#STILL BEING DEVELOPED
-""" def crashed(current_dir: str, snake: dict):
-    for i in range(1, len(snake)):
-        if current_dir == "Up" or "Left":
-            if snake[0].getP1().getX() + 20 == snake[i].getP1().getX() and snake[0].getP1().getY() == snake[i].getP1().getY():
-                return False
 
-        elif current_dir == "Down" or "Right":
-            if snake[0].getP2().getX() + 20 == snake[i].getP2().getX() and snake[0].getP2().getY() == snake[i].getP2().getY():
-                return False
+def game_has_ended(snake):
+    """Only returns True when one of the conditions are met to end the game."""
+    EDGE1, EDGE2 = snake[0].getP1().getX(), snake[0].getP1().getY()
+
+    EDGE3, EDGE4 = snake[0].getP2().getX(), snake[0].getP2().getY()
         
-        else:
-            return True """
+    if limits(EDGE1, EDGE2, EDGE3, EDGE4, (400, 400)):
+        return True
+
+    for i in range(1, len(snake)):
+        if(snake[0].getCenter().getX() == snake[i].getCenter().getX() and snake[0].getCenter().getY() == snake[i].getCenter().getY()):
+                
+            return True
+
+    return False
+
 
 #Runs snake game:
 def run():
@@ -199,30 +202,13 @@ def run():
         PLAYER[0].setWidth(2)
         PLAYER[0].draw(ui)
 
-        # Screen edges
-        EDGE1 = PLAYER[0].getP1().getX()
-        EDGE2 = PLAYER[0].getP1().getY()
-
-        EDGE3 = PLAYER[0].getP2().getX()
-        EDGE4 = PLAYER[0].getP2().getY()
-
-        GAME = limits(EDGE1, EDGE2, EDGE3, EDGE4, (WIDTH, GRID_HEIGHT))
-
         # Game over if edges are touched
-        if(GAME == OVER):
+        if(game_has_ended(PLAYER)):
             PLAYER[0].undraw()
             PLAYER[0].setFill(color_rgb(220, 20, 60))
             PLAYER[0].setWidth(2)
             PLAYER[0].draw(ui)
-
-        # Game over if head touches body
-        for i in range(1, len(PLAYER)):
-            if(PLAYER[0].getCenter().getX() == PLAYER[i].getCenter().getX() and PLAYER[0].getCenter().getY() == PLAYER[i].getCenter().getY()):
-                PLAYER[0].undraw()
-                PLAYER[0].setFill(color_rgb(220, 20, 60))
-                PLAYER[0].setWidth(2)
-                PLAYER[0].draw(ui)
-                GAME = OVER
+            break
 
         # User control validation:
         TEMP = ui.checkKey()
@@ -261,7 +247,7 @@ def run():
     score_manipulation("scores.txt", "v/w", ui, SCORE)
 
     game_over_UI(WIDTH, HEIGHT, ui)
-    win.close()
+    ui.close()
 
 
 def main():
