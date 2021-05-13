@@ -26,7 +26,6 @@ def UI(WIDTH, HEIGHT, window):
 def display(width, height):
     """Generates display (grid/user UI)."""
 
-    # Main GUI:
     win = GraphWin("SNEK", 400, 470, autoflush=False)
     win.setBackground(color_rgb(15, 15, 15))
 
