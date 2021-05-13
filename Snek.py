@@ -74,7 +74,7 @@ def limits(X_LIM1, Y_LIM1, X_LIM2, Y_LIM2, limits):
         return False
 
 
-def Snek_Reward(WIDTH, GRID_HEIGHT, window):
+def snek_reward(WIDTH, GRID_HEIGHT, window):
     """Generates a reward for the snake and return the reward (Rectangle object)."""
     REWARD_X = randrange(20, WIDTH - 20, 20)
     REWARD_Y = randrange(20, GRID_HEIGHT - 20, 20)
@@ -88,7 +88,7 @@ def Snek_Reward(WIDTH, GRID_HEIGHT, window):
     return True, PRIZE
 
 
-def score_manipulation(file: str, score_mode: str, window, score=0):
+def score_manipulation(file, score_mode, window, score=0):
     """
     Reads and/or writes score from file.
         Modes:
@@ -265,7 +265,7 @@ def run():
 
         # Snake objective spawning
         if(SPAWN == False):
-            SPAWN, OBJECTIVE = Snek_Reward(WIDTH, GRID_HEIGHT, ui)
+            SPAWN, OBJECTIVE = snek_reward(WIDTH, GRID_HEIGHT, ui)
 
         # Creates new reward, speeds up game and updates score
         if snake_to_reward(PLAYER, OBJECTIVE):
