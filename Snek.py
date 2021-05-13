@@ -47,8 +47,9 @@ def game_over_UI(WIDTH, HEIGHT, window):
     END_TEXT.setFill("White")
     END_TEXT.draw(window)
 
-    window.getMouse()
-
+    for i in range(10):
+        update(10)
+    
 
 def score_counter_and_display(SCORE, window):
     """Generates score display and returns the score (Text object)."""
@@ -85,7 +86,7 @@ def Snek_Reward(WIDTH, GRID_HEIGHT, window):
         )
     PRIZE.setFill("Red")
     PRIZE.draw(window)
-    return PRIZE
+    return True, PRIZE
 
 
 def score_manipulation(file: str, score_mode: str, window, score=0):
@@ -98,33 +99,59 @@ def score_manipulation(file: str, score_mode: str, window, score=0):
     Note: File must be created prior to manipulation.
     """
 
-    if score_mode == "read":
-        with open(file, "r") as CHALLENGE:
-            HIGHEST = "0" if (temp := CHALLENGE.readline()) == "" else temp
+    if score_mode == 'read':
+        with open(file, 'r') as challenge:
+            highest = '0' if (temp := challenge.readline()) == '' else temp
 
-            CHALLENGE_SCORE = Text(Point(285, 435), f"High Score: {HIGHEST}")
-            CHALLENGE_SCORE.setSize(20)
-            CHALLENGE_SCORE.setFill("White")
-            CHALLENGE_SCORE.draw(window)
+            challenge_score = Text(Point(285, 435), f'High Score: {highest}')
+            challenge_score.setSize(20)
+            challenge_score.setFill('White')
+            challenge_score.draw(window)
 
-    elif score_mode == "v/w":
-        with open(file, "r+") as CHALLENGE:
-            temp = False
+    elif score_mode == 'v/w':
+        with open(file, 'r+') as challenge:
 
             try:
-                temp = int(CHALLENGE.readline()) < score
+                test = False
+                test = int(challenge.readline()) < score
+
             except ValueError:
-                CHALLENGE.write(str(score))
+                challenge.write(str(score))
             
-            if (temp):
+            if test:
                 position = 0
 
-                CHALLENGE.seek(position)
-                CHALLENGE.write(str(score))
+                challenge.seek(position)
+                challenge.write(str(score))
+
+
+def snake(x, y, side_length):
+    """Creates the snake's template for head/body."""
+
+    container = {}
+    container[0] = Rectangle(
+        Point(x - 20 - side_length, y - side_length),
+        Point(x - 20 + side_length, y + side_length)
+        )
+
+    return container
+
+
+def snake_to_reward(snake, reward_status):
+    """Reports if the snake has obtained the reward and removes it if it was obtained."""
+    
+    center1 = reward_status.getCenter().getX() == snake[0].getCenter().getX()
+    center2 = reward_status.getCenter().getY() == snake[0].getCenter().getY()
+
+    if center1 and center2:
+        reward_status.undraw()
+
+    return center1 and center2
 
 
 def game_has_ended(snake):
     """Only returns True when one of the conditions are met to end the game."""
+
     EDGE1, EDGE2 = snake[0].getP1().getX(), snake[0].getP1().getY()
 
     EDGE3, EDGE4 = snake[0].getP2().getX(), snake[0].getP2().getY()
@@ -140,6 +167,27 @@ def game_has_ended(snake):
     return False
 
 
+def try_again(window, width=400, height=400):
+    interface = Rectangle(Point(0, 0), Point(width, height))
+    interface.setFill('Grey')
+    interface.draw(window)
+
+    option = Text(Point(width/2, height/2), 'Do you wish to try again?\n\nPress ENTER to try again or any other key to exit.')
+    option.setFill('White')
+    option.setSize(12)
+    option.draw(window)
+
+    if(window.getKey() == 'Return'):
+        window.close()
+
+        return True
+    
+    else: 
+        window.close()
+
+        return False
+
+
 #Runs snake game:
 def run():
     # Variables used:
@@ -151,8 +199,6 @@ def run():
     LENGTH = SIDE * 2
     PLAYER_LENGTH = 3
     DIRECTION = "Down"
-    GAME = True
-    OVER = False
     SPAWN = False
     X = 30
     Y = 70
@@ -161,22 +207,18 @@ def run():
     y_dir = {"Up": -LENGTH, "Down": LENGTH}
     x_dir = {"Left": -LENGTH, "Right": LENGTH}
 
-    # Snake values to be drawn
-    PLAYER = {}
-    PLAYER[0] = Rectangle(
-        Point(X - 20 - SIDE, Y - SIDE),
-        Point(X - 20 + SIDE, Y + SIDE)
-        )
-
     # Playing field
     ui = display(WIDTH, HEIGHT)
     STREAK = score_counter_and_display(SCORE, ui)
 
+    # Snake values to be drawn
+    PLAYER = snake(X, Y, SIDE)
+
     #Gets High Score
-    score_manipulation("scores.txt", "read", ui)
+    score_manipulation('scores.txt', 'read', ui)
 
     # Running game:
-    while GAME:
+    while True:
         STREAK.undraw()
         STREAK = score_counter_and_display(SCORE, ui)
 
@@ -192,7 +234,7 @@ def run():
             PLAYER[len(PLAYER) - i] = PLAYER[len(PLAYER) - i - 1].clone()
             PLAYER[len(PLAYER) - i].draw(ui)
 
-        # Head coordinates of snake
+        # Active head coordinates of snake
         PLAYER[0] = Rectangle(
             Point(X - SIDE, Y - SIDE),
             Point(X + SIDE, Y + SIDE)
@@ -224,34 +266,32 @@ def run():
 
         # Snake objective spawning
         if(SPAWN == False):
-            OBJECTIVE = Snek_Reward(WIDTH, GRID_HEIGHT, ui)
-            SPAWN = True
-
-        # If objective is reached, update values
-        CENTER1 = OBJECTIVE.getCenter().getX() == PLAYER[0].getCenter().getX()
-        CENTER2 = OBJECTIVE.getCenter().getY() == PLAYER[0].getCenter().getY()
+            SPAWN, OBJECTIVE = Snek_Reward(WIDTH, GRID_HEIGHT, ui)
 
         # Creates new reward, speeds up game and updates score
-        if(CENTER1 and CENTER2):
+        if snake_to_reward(PLAYER, OBJECTIVE):
             SPAWN = False
             SCORE += 1
             PLAYER_LENGTH += 1
             if(FRAMES < 10):
                 FRAMES += 1
-            OBJECTIVE.undraw()
 
         # Controls Snake speed
         update(FRAMES)
     
     #If score is nigher than High Score, registers it
-    score_manipulation("scores.txt", "v/w", ui, SCORE)
+    score_manipulation('scores.txt', 'v/w', ui, SCORE)
 
     game_over_UI(WIDTH, HEIGHT, ui)
-    ui.close()
+
+    return ui
 
 
 def main():
-    run()
+    sentinel = True
+    while sentinel:
+        game = run()
+        sentinel = try_again(game)
     
 
 if __name__ == '__main__':
