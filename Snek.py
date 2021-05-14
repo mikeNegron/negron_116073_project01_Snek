@@ -92,7 +92,9 @@ def score_manipulation(file, score_mode, window, score=0):
     """
     Reads and/or writes score from file.
         Modes:
+
             1. read: Reads score from file.
+
             2. v/w: Verifies if score is higher than previous. If True, it is added to the file.
 
     Note: File must be created prior to manipulation.
@@ -171,7 +173,10 @@ def try_again(window, width=400, height=400):
     interface.setFill('Grey')
     interface.draw(window)
 
-    option = Text(Point(width/2, height/2), 'Do you wish to try again?\n\nPress ENTER to try again or any other key to exit.')
+    option = Text(
+        Point(width/2, height/2),
+        'Do you wish to try again?\n\nPress ENTER to try again or any other key to exit.'
+        )
     option.setFill('White')
     option.setSize(12)
     option.draw(window)
