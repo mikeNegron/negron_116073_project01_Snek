@@ -16,6 +16,16 @@ class ScoreHandling:
             self.file = file
 
     def score_manipulation(self, score_mode, window, score = 0):
+        """
+        Reads and/or writes score from file.
+            Modes:
+
+                1. read: Reads score from file.
+
+                2. v/w: Verifies if score is higher than previous. If True, it is added to the file.
+
+        Note: File must have a '.txt' extension.
+        """
         if score_mode == 'read':
             with open(self.file, 'r') as challenge:
                 highest = '0' if (temp := challenge.readline()) == '' else temp
@@ -76,6 +86,29 @@ class Display:
         self.counter.draw(window)
         return self.counter
 
+    def play_again(self, window):
+        interface = Rectangle(Point(0, 0), Point(self.width, self.grid_height))
+        interface.setFill('Grey')
+        interface.draw(window)
+
+        option = Text(
+            Point(self.width/2, self.grid_height/2),
+            'Do you wish to try again?\n\nPress ENTER to try again or any other key to exit.'
+            )
+        option.setFill('White')
+        option.setSize(12)
+        option.draw(window)
+
+        if(window.getKey() == 'Return'):
+            window.close()
+
+            return True
+        
+        else: 
+            window.close()
+
+            return False
+
     def game_over(self, window):
         status = Rectangle(Point(0, 400), Point(self.width, self.height))
         status.setFill("Black")
@@ -89,8 +122,7 @@ class Display:
         for i in range(10):
             update(10)
 
-        window.getMouse() #Should call Play Again Screen Here
-        window.close()
+        return self.play_again(window)
 
     def create_field(self):
         win = GraphWin(self.name, self.width, self.height, autoflush=False)
@@ -103,7 +135,6 @@ class Display:
 
     def get_limits(self):
         return (self.width, self.grid_height)
-
 
 
 class Snake:
@@ -140,7 +171,7 @@ class Snake:
         self.prize = Rectangle(
             Point(0, 0),
             Point(0, 0)
-        )
+            )
         self.reward_up = False
 
         self.container = {}
@@ -167,7 +198,7 @@ class Snake:
             self.prize = Rectangle(
                 Point(reward_x, reward_y),
                 Point(reward_x + 20, reward_y + 20)
-            )
+                )
             self.prize.setFill('Red')
 
             self.prize.draw(self.field)
@@ -213,7 +244,7 @@ class Snake:
         elif self.direction in self.y_dir:
             self.y += self.y_dir[self.direction]
 
-    def snake_factory(self):
+    def run_snake(self):
         info = self.screen.score_display(self.score, self.field)
 
         while True:
@@ -256,177 +287,18 @@ class Snake:
 
         self.doc.score_manipulation('v/w', self.field, self.score)
 
-        self.screen.game_over(self.field)
-
-
-def score_manipulation(file, score_mode, window, score=0):
-    """
-    Reads and/or writes score from file.
-        Modes:
-
-            1. read: Reads score from file.
-
-            2. v/w: Verifies if score is higher than previous. If True, it is added to the file.
-
-    Note: File must be created prior to manipulation.
-    """
-
-    if score_mode == 'read':
-        with open(file, 'r') as challenge:
-            highest = '0' if (temp := challenge.readline()) == '' else temp
-
-            challenge_score = Text(Point(285, 435), f'High Score: {highest}')
-            challenge_score.setSize(20)
-            challenge_score.setFill('White')
-            challenge_score.draw(window)
-
-    elif score_mode == 'v/w':
-        with open(file, 'r+') as challenge:
-
-            try:
-                test = False
-                test = int(challenge.readline()) < score
-
-            except ValueError:
-                challenge.write(str(score))
-            
-            if test:
-                position = 0
-
-                challenge.seek(position)
-                challenge.write(str(score))
-
-
-def try_again(window, width=400, height=400):
-    interface = Rectangle(Point(0, 0), Point(width, height))
-    interface.setFill('Grey')
-    interface.draw(window)
-
-    option = Text(
-        Point(width/2, height/2),
-        'Do you wish to try again?\n\nPress ENTER to try again or any other key to exit.'
-        )
-    option.setFill('White')
-    option.setSize(12)
-    option.draw(window)
-
-    if(window.getKey() == 'Return'):
-        window.close()
-
-        return True
-    
-    else: 
-        window.close()
-
-        return False
-
-
-#Runs snake game:
-def run():
-    # Variables used:
-    WIDTH = 400
-    HEIGHT = 470
-    GRID_HEIGHT = WIDTH
-    BODY = 0
-    SIDE = 10
-    LENGTH = SIDE * 2
-    PLAYER_LENGTH = 3
-    DIRECTION = "Down"
-    SPAWN = False
-    X = 30
-    Y = 70
-    SCORE = 0
-    FRAMES = 5
-    y_dir = {"Up": -LENGTH, "Down": LENGTH}
-    x_dir = {"Left": -LENGTH, "Right": LENGTH}
-
-    # Playing field
-    ui = display(WIDTH, HEIGHT)
-    STREAK = score_counter_and_display(SCORE, ui)
-
-    # Snake values to be drawn
-    PLAYER = snake(X, Y, SIDE)
-
-    #Gets High Score
-    score_manipulation('scores.txt', 'read', ui)
-
-    # Running game:
-    while True:
-        STREAK.undraw()
-        STREAK = score_counter_and_display(SCORE, ui)
-
-        # Makes existing and potential new body
-        if len(PLAYER) < PLAYER_LENGTH:
-            BODY += 1
-            PLAYER[BODY] = PLAYER[BODY - 1].clone()
-
-        # Makes body follow
-        PLAYER[0].undraw()
-        for i in range(1, len(PLAYER)):
-            PLAYER[len(PLAYER) - i].undraw()
-            PLAYER[len(PLAYER) - i] = PLAYER[len(PLAYER) - i - 1].clone()
-            PLAYER[len(PLAYER) - i].draw(ui)
-
-        # Active head coordinates of snake
-        PLAYER[0] = Rectangle(
-            Point(X - SIDE, Y - SIDE),
-            Point(X + SIDE, Y + SIDE)
-            )
-        PLAYER[0].setOutline("White")
-        PLAYER[0].setFill("Cyan")
-        PLAYER[0].setWidth(2)
-        PLAYER[0].draw(ui)
-
-        # Game over if edges are touched
-        if(game_has_ended(PLAYER)):
-            PLAYER[0].undraw()
-            PLAYER[0].setFill(color_rgb(220, 20, 60))
-            PLAYER[0].setWidth(2)
-            PLAYER[0].draw(ui)
-            break
-
-        # User control validation:
-        TEMP = ui.checkKey()
-
-        if TEMP != "":
-            DIRECTION = TEMP
-        
-        # User control execution:
-        if DIRECTION in y_dir:
-            Y += y_dir[DIRECTION]
-        elif DIRECTION in x_dir:
-            X += x_dir[DIRECTION]
-
-        # Snake objective spawning
-        if(SPAWN == False):
-            SPAWN, OBJECTIVE = snek_reward(WIDTH, GRID_HEIGHT, ui)
-
-        # Creates new reward, speeds up game and updates score
-        if snake_to_reward(PLAYER, OBJECTIVE):
-            SPAWN = False
-            SCORE += 1
-            PLAYER_LENGTH += 1
-            if(FRAMES < 10):
-                FRAMES += 1
-
-        # Controls Snake speed
-        update(FRAMES)
-    
-    #If score is nigher than High Score, registers it
-    score_manipulation('scores.txt', 'v/w', ui, SCORE)
-
-    game_over_UI(WIDTH, HEIGHT, ui)
-
-    return ui
+        return self.screen.game_over(self.field)
 
 
 def main():
-    temp = Snake()
+    sentinel = True
 
-    temp.snake_factory()
+    while sentinel:
+        game = Snake()
 
+        sentinel = game.run_snake()
+        update(10)
 
-    
 
 if __name__ == '__main__':
     main()
