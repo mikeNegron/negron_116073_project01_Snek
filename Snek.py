@@ -11,7 +11,7 @@ class ScoreHandling:
             with open(file, 'w') as temp:
                 temp.seek(0)
         else:
-            test.close(file)
+            test.close()
         finally:
             self.file = file
 
@@ -48,6 +48,9 @@ class Display:
         self.height = height
         self.name = 'SNEK'
 
+        self.displayed = False
+        self.counter = Text(Point(75, 435), '')
+        
         self.grid_height = width
 
     def _grid(self, window):
@@ -67,10 +70,11 @@ class Display:
         bar.draw(window)
 
     def score_display(self, score, window):
-        counter = Text(Point(75, 435), f"Score: {score}")
-        counter.setSize(20)
-        counter.setFill("White")
-        counter.draw(window)
+        self.counter = Text(Point(75, 435), f"Score: {score}")
+        self.counter.setSize(20)
+        self.counter.setFill("White")
+        self.counter.draw(window)
+        return self.counter
 
     def game_over(self, window):
         status = Rectangle(Point(0, 400), Point(self.width, self.height))
@@ -97,13 +101,26 @@ class Display:
 
         return win
 
+    def get_limits(self):
+        return (self.width, self.grid_height)
+
+
 
 class Snake:
     def __init__(self):
         self.screen = Display(400, 470)
         self.field = self.screen.create_field()
+        self.min_x, self.min_y = (0, 0)
+        self.max_x, self.max_y = self.screen.get_limits()
+        self.limits = {
+            'x_eval' : lambda x : self.min_x + 20 <= x <= self.max_x - 20,
+            'y_eval' : lambda y : self.min_y + 20 <= y <= self.max_y - 20,
+            }
 
-        self.score = -1
+        self.score = 0
+
+        self.doc = ScoreHandling('Scores.txt')
+        self.doc.score_manipulation('read', self.field)
 
         self.frames = 5
 
@@ -169,6 +186,16 @@ class Snake:
                     self.frames += 1
 
     def snake_death(self):
+        p1 = (self.container[0].getP1().getX(), self.container[0].getP1().getY())
+        p2 = (self.container[0].getP2().getX(), self.container[0].getP2().getY())
+
+        for i, j in zip(p1, p2):
+            if not self.limits['x_eval'](i) or not self.limits['x_eval'](j):
+                return True
+
+            elif not self.limits['y_eval'](i) or not self.limits['y_eval'](j):
+                return True
+            
         for i in range(1, len(self.container)):
             if self.point_comparison(self.container[i]):
                 return True
@@ -187,7 +214,12 @@ class Snake:
             self.y += self.y_dir[self.direction]
 
     def snake_factory(self):
+        info = self.screen.score_display(self.score, self.field)
+
         while True:
+
+            info.undraw()
+            info = self.screen.score_display(self.score, self.field)
 
             if len(self.container) < self.player_length:
                 self.body += 1
@@ -222,52 +254,9 @@ class Snake:
 
             update(self.frames)
 
-        
+        self.doc.score_manipulation('v/w', self.field, self.score)
 
         self.screen.game_over(self.field)
-            
-
-
-
-        
-    
-
-def score_counter_and_display(SCORE, window):
-    """Generates score display and returns the score (Text object)."""
-    COUNTER = Text(Point(75, 435), f"Score: {SCORE}")
-    COUNTER.setSize(20)
-    COUNTER.setFill("White")
-    COUNTER.draw(window)
-
-    return COUNTER
-
-
-def limits(X_LIM1, Y_LIM1, X_LIM2, Y_LIM2, limits):
-    """Validates if snake is at any on the limits to end game."""
-    if(X_LIM1 >= limits[0] or X_LIM1 <= 0):
-        return True
-    elif(Y_LIM1 >= limits[1] or Y_LIM1 <= 0):
-        return True
-    elif(X_LIM2 >= limits[0] or X_LIM2 <= 0):
-        return True
-    elif(Y_LIM2 >= limits[1] or Y_LIM2 <= 0):
-        return True
-    else:
-        return False
-
-
-def snek_reward(WIDTH, GRID_HEIGHT, window):
-    """Generates a reward for the snake and return the reward (Rectangle object)."""
-    REWARD_X = randrange(20, WIDTH - 20, 20)
-    REWARD_Y = randrange(20, GRID_HEIGHT - 20, 20)
-
-    PRIZE = Rectangle(
-        Point(REWARD_X, REWARD_Y),
-        Point(REWARD_X + 20, REWARD_Y + 20)
-        )
-    PRIZE.setFill("Red")
-    PRIZE.draw(window)
-    return True, PRIZE
 
 
 def score_manipulation(file, score_mode, window, score=0):
@@ -306,48 +295,6 @@ def score_manipulation(file, score_mode, window, score=0):
 
                 challenge.seek(position)
                 challenge.write(str(score))
-
-
-def snake(x, y, side_length):
-    """Creates the snake's template for head/body."""
-
-    container = {}
-    container[0] = Rectangle(
-        Point(x - 20 - side_length, y - side_length),
-        Point(x - 20 + side_length, y + side_length)
-        )
-
-    return container
-
-
-def snake_to_reward(snake, reward_status):
-    """Reports if the snake has obtained the reward and removes it if it was obtained."""
-    
-    center1 = reward_status.getCenter().getX() == snake[0].getCenter().getX()
-    center2 = reward_status.getCenter().getY() == snake[0].getCenter().getY()
-
-    if center1 and center2:
-        reward_status.undraw()
-
-    return center1 and center2
-
-
-def game_has_ended(snake):
-    """Only returns True when one of the conditions are met to end the game."""
-
-    EDGE1, EDGE2 = snake[0].getP1().getX(), snake[0].getP1().getY()
-
-    EDGE3, EDGE4 = snake[0].getP2().getX(), snake[0].getP2().getY()
-        
-    if limits(EDGE1, EDGE2, EDGE3, EDGE4, (400, 400)):
-        return True
-
-    for i in range(1, len(snake)):
-        if(snake[0].getCenter().getX() == snake[i].getCenter().getX() and snake[0].getCenter().getY() == snake[i].getCenter().getY()):
-                
-            return True
-
-    return False
 
 
 def try_again(window, width=400, height=400):
