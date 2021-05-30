@@ -53,15 +53,15 @@ This version of snake takes inspiration from user **ifsoMarcus'** version of sna
      ```
      - New:
      ```python
-     def grid(WIDTH, GRID_HEIGHT):
-        for i in range(20, WIDTH, 20):
-            GRID_VERTICAL = Line(Point(i, 0), Point(i, GRID_HEIGHT))
-            GRID_VERTICAL.setOutline(color_rgb(25, 25, 25))
-            GRID_VERTICAL.draw(WIN)
+     def _grid(self, window):
+        for i in range(20, self.width, 20):
+            grid_vertical = Line(Point(i, 0), Point(i, self.grid_height))
+            grid_vertical.setOutline(color_rgb(25, 25, 25))
+            grid_vertical.draw(window)
 
-            GRID_HORIZONTAL = Line(Point(0, i), Point(WIDTH, i))
-            GRID_HORIZONTAL.setOutline(color_rgb(25, 25, 25))
-            GRID_HORIZONTAL.draw(WIN)
+            grid_horizontal = Line(Point(0, i), Point(self.width, i))
+            grid_horizontal.setOutline(color_rgb(25, 25, 25))
+            grid_horizontal.draw(window)
      ```
    - User Interface:
      - Original:
@@ -73,17 +73,7 @@ This version of snake takes inspiration from user **ifsoMarcus'** version of sna
      . . .
      ```
      - New:
-     ```python
-     def display(width, height):
-         """Generates display (grid/user UI)."""
-         win = GraphWin("SNEK", 400, 470, autoflush=False)
-         win.setBackground(color_rgb(15, 15, 15))
-
-         grid(width, width, win)
-         UI(width, height, win)
-
-         return win
-     ```
+         - Uses a class called to Display to manage all canvas manipulations.
 2. Simplified user control:
    - Original:
    ```python
@@ -139,18 +129,20 @@ This version of snake takes inspiration from user **ifsoMarcus'** version of sna
    ```
    - New:
    ```python
-   def Snek_Reward(WIDTH, GRID_HEIGHT):
-      REWARD_X = randrange(20, WIDTH - 20, 20)
-      REWARD_Y = randrange(20, GRID_HEIGHT - 20, 20)
+   def rewards(self):
+        if self.reward_up == False:
 
-      PRIZE = Rectangle(
-         Point(REWARD_X, REWARD_Y),
-         Point(REWARD_X + 20, REWARD_Y + 20)
-         )
-               
-      PRIZE.setFill("Red")
-      PRIZE.draw(WIN)
-      return PRIZE
+            reward_x = randrange(20, 380, 20)
+            reward_y = randrange(20, 380, 20)
+
+            self.prize = Rectangle(
+                Point(reward_x, reward_y),
+                Point(reward_x + 20, reward_y + 20)
+                )
+            self.prize.setFill('Red')
+
+            self.prize.draw(self.field)
+            self.reward_up = True
    ```
 4. The score display:
    - Original:
@@ -163,13 +155,12 @@ This version of snake takes inspiration from user **ifsoMarcus'** version of sna
    ```
    - New:
    ```python
-   def score_counter_and_display(SCORE):
-      COUNTER = Text(Point(75, 435), f"Score: {SCORE}")
-      COUNTER.setSize(20)
-      COUNTER.setFill("White")
-      COUNTER.draw(WIN)
-
-      return COUNTER
+   def score_display(self, score, window):
+        self.counter = Text(Point(75, 435), f"Score: {score}")
+        self.counter.setSize(20)
+        self.counter.setFill("White")
+        self.counter.draw(window)
+        return self.counter
    ```
 5. "Game Over" conditions:
    - Original:
@@ -185,25 +176,22 @@ This version of snake takes inspiration from user **ifsoMarcus'** version of sna
    ```
    - New:
    ```python
-   def game_has_ended(snake):
-    """Only returns True when one of the conditions are met to end the game."""
+   def snake_death(self):
+        p1 = (self.container[0].getP1().getX(), self.container[0].getP1().getY())
+        p2 = (self.container[0].getP2().getX(), self.container[0].getP2().getY())
 
-    EDGE1, EDGE2 = snake[0].getP1().getX(), snake[0].getP1().getY()
+        for i, j in zip(p1, p2):
+            if not self.limits['x_eval'](i) or not self.limits['x_eval'](j):
+                return True
 
-    EDGE3, EDGE4 = snake[0].getP2().getX(), snake[0].getP2().getY()
-        
-    if limits(EDGE1, EDGE2, EDGE3, EDGE4, (400, 400)):
-        return True
+            elif not self.limits['y_eval'](i) or not self.limits['y_eval'](j):
+                return True
+            
+        for i in range(1, len(self.container)):
+            if self.point_comparison(self.container[i]):
+                return True
 
-    for i in range(1, len(snake)):
-        if(
-           snake[0].getCenter().getX() == snake[i].getCenter().getX()
-           and snake[0].getCenter().getY() == snake[i].getCenter().getY()
-           ):
-                
-            return True
-
-    return False
+        return False
    ```
 
 ### New Additions:
